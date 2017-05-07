@@ -116,6 +116,13 @@ public class JsonParser {
             } else if (Character.isDigit(ch)) {
                 value.append(ch);
                 return this;
+            } else if (ch == '-') {
+                if (value.length() > 0) {
+                    throw new ParseException("'-' is not expected here.");
+                } else {
+                    value.append(ch);
+                    return this;
+                }
             } else {
                 return end().parse(ch);
             }

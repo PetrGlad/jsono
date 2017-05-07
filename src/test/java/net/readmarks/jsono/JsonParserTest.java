@@ -55,6 +55,7 @@ public class JsonParserTest {
     @Test
     public void parseNumbers() {
         assertArrayEquals(new Object[]{0L, END}, parse("0"));
+        assertArrayEquals(new Object[]{-12L, END}, parse("-12"));
         assertArrayEquals(new Object[]{1234321L, END}, parse("1234321"));
         assertArrayEquals(new Object[]{START_ARRAY, 1234L, END_ARRAY, END}, parse("[1234]"));
     }
