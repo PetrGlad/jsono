@@ -69,19 +69,19 @@ public class JsonParser {
             if (result != null) {
                 return result;
             } else if (ch == '{') {
-                return new SObject(this);
+                return new SObject(parent);
             } else if (ch == '[') {
-                return new SArray(this);
+                return new SArray(parent);
             } else if (ch == '"') {
-                return new SString(this);
+                return new SString(parent);
             } else if (ch == '-' || Character.isDigit(ch)) {
-                return new SNumber(this).parse(ch);
+                return new SNumber(parent).parse(ch);
             } else if (ch == 't') {
-                return new SConst(this, "true", Boolean.TRUE).parse(ch);
+                return new SConst(parent, "true", Boolean.TRUE).parse(ch);
             } else if (ch == 'f') {
-                return new SConst(this, "false", Boolean.FALSE).parse(ch);
+                return new SConst(parent, "false", Boolean.FALSE).parse(ch);
             } else if (ch == 'n') {
-                return new SConst(this, "null", null).parse(ch);
+                return new SConst(parent, "null", null).parse(ch);
             } else {
                 return parent.parse(ch);
             }
@@ -98,7 +98,7 @@ public class JsonParser {
         final Object value;
         int pos = 0;
 
-        SConst(SValue sParent, String valueString, Object value) {
+        SConst(SElement sParent, String valueString, Object value) {
             super(sParent);
             this.valueString = valueString;
             this.value = value;
@@ -126,7 +126,7 @@ public class JsonParser {
         final private StringBuilder stringValue = new StringBuilder();
         private boolean isDouble = false;
 
-        SNumber(SValue sParent) {
+        SNumber(SElement sParent) {
             super(sParent);
         }
 
@@ -265,7 +265,7 @@ public class JsonParser {
     class SObject extends SElement {
         private SObjectState sObjectState = SObjectState.START;
 
-        SObject(SValue sParent) {
+        SObject(SElement sParent) {
             super(sParent);
             eventSink.accept(Event.START_MAP);
         }
@@ -298,7 +298,7 @@ public class JsonParser {
     class SArray extends SElement {
         private boolean expectComma = false;
 
-        SArray(SValue sParent) {
+        SArray(SElement sParent) {
             super(sParent);
             eventSink.accept(Event.START_ARRAY);
         }
