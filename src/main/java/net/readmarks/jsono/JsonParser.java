@@ -132,10 +132,13 @@ public class JsonParser {
 
         @Override
         public SElement parse(char ch) {
-            final SElement result = super.parse(ch);
-            if (result != null) {
-                return result;
-            } else if (Character.isDigit(ch) || ch == '-' || ch == '+') {
+            if (stringValue.length() == 0) {
+                final SElement result = super.parse(ch);
+                if (result != null) {
+                    return result;
+                }
+            }
+            if (Character.isDigit(ch) || ch == '-' || ch == '+') {
                 stringValue.append(ch);
                 return this;
             } else if (ch == '.' || ch == 'e' || ch == 'E') {
@@ -177,10 +180,7 @@ public class JsonParser {
 
         @Override
         public SElement parse(char ch) {
-            final SElement result = super.parse(ch);
-            if (result != null) {
-                return result;
-            } else if (ch == '"') {
+            if (ch == '"') {
                 eventSink.accept(value.toString());
                 return parent;
             } else if (ch == '\\') {
@@ -296,7 +296,7 @@ public class JsonParser {
     }
 
     class SArray extends SElement {
-        private boolean isFirst = true;
+        private boolean expectComma = false;
 
         SArray(SValue sParent) {
             super(sParent);
@@ -308,13 +308,17 @@ public class JsonParser {
             final SElement result = super.parse(ch);
             if (result != null) {
                 return result;
-            } else if (!isFirst && ch == ',') {
-                return new SValue(this);
             } else if (ch == ']') {
                 eventSink.accept(Event.END_ARRAY);
                 return parent;
+            } else if (expectComma) {
+                if (ch != ',') {
+                    throw new ParseException("Expecting comma or array end, got '" + ch + "'");
+                }
+                expectComma = false;
+                return this;
             } else {
-                isFirst = false;
+                expectComma = true;
                 return new SValue(this).parse(ch);
             }
         }

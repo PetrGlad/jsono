@@ -60,6 +60,16 @@ public class JsonParserTest {
         assertArrayEquals(new Object[]{START_ARRAY, 1234L, END_ARRAY, END}, parse("[1234]"));
     }
 
+    @Test(expected = JsonParser.ParseException.class)
+    public void noCommas() {
+        parse("[1 2 3]");
+    }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void noCommas2() {
+        parse("[\"\" \"\"]");
+    }
+
     @Test
     public void parseNested() {
         assertArrayEquals(
@@ -93,8 +103,9 @@ public class JsonParserTest {
 
     @Test
     public void testStrings() {
+        assertArrayEquals(new Object[]{" a", END}, parse("\" a\""));
         assertArrayEquals(new Object[]{"\\%2", END}, parse("\"\\\\%2\""));
-        assertArrayEquals(new Object[]{"\"\\%22\"", END}, parse("\"\\u0022 \\\\%22\\\"\""));
+        assertArrayEquals(new Object[]{"\" \\%22\"", END}, parse("\"\\u0022 \\\\%22\\\"\""));
         assertArrayEquals(new Object[]{"\b\f\n\r\t/\\", END}, parse("\"\\b\\f\\n\\r\\t\\/\\\\\""));
         assertArrayEquals(new Object[]{"\u2615f", END}, parse("\"\\u2615f\""));
         assertArrayEquals(new Object[]{"\u2615", END}, parse("\"\\u2615\""));
