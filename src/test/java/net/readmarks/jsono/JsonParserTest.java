@@ -79,4 +79,24 @@ public class JsonParserTest {
                         END},
                 parse("[{\"k\":[]}]"));
     }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void parseNestingError() {
+        parse("[[{\"k\":[]}");
+    }
+
+    @Test
+    public void testNumbers() {
+        assertArrayEquals(new Object[]{0L, END}, parse("0"));
+        assertArrayEquals(new Object[]{1.23e12, END}, parse("0.123e+13"));
+    }
+
+    @Test
+    public void testStrings() {
+        assertArrayEquals(new Object[]{"\\%2", END}, parse("\"\\\\%2\""));
+        assertArrayEquals(new Object[]{"\"\\%22\"", END}, parse("\"\\u0022 \\\\%22\\\"\""));
+        assertArrayEquals(new Object[]{"\b\f\n\r\t/\\", END}, parse("\"\\b\\f\\n\\r\\t\\/\\\\\""));
+        assertArrayEquals(new Object[]{"\u2615f", END}, parse("\"\\u2615f\""));
+        assertArrayEquals(new Object[]{"\u2615", END}, parse("\"\\u2615\""));
+    }
 }

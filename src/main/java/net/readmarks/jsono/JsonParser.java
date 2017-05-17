@@ -1,6 +1,7 @@
 package net.readmarks.jsono;
 
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 public class JsonParser {
 
@@ -14,7 +15,7 @@ public class JsonParser {
         MAP_VALUE
     }
 
-    public class ParseException extends RuntimeException {
+    public static class ParseException extends RuntimeException {
         ParseException(String s) {
             super(s);
         }
@@ -22,10 +23,6 @@ public class JsonParser {
 
     abstract static class SElement {
         final SElement parent;
-
-        SElement() {
-            this(null);
-        }
 
         SElement(SElement parent) {
             this.parent = parent;
@@ -40,7 +37,7 @@ public class JsonParser {
         }
 
         public SElement end() {
-            return this;
+            throw new ParseException("Unexpected end of input in " + getClass().getSimpleName());
         }
     }
 
@@ -72,6 +69,11 @@ public class JsonParser {
                 return parent.parse(ch);
             }
         }
+
+        @Override
+        public SElement end() {
+            return parent.end();
+        }
     }
 
     class SConst extends SElement {
@@ -101,8 +103,11 @@ public class JsonParser {
         }
     }
 
+    private static Pattern NUMBER_FORMAT = Pattern.compile("-?(0|[1-9][0-9]+)(\\.[0-9]+)?([eE][-+]?[0-9]+)?");
+
     class SNumber extends SElement {
-        final private StringBuilder value = new StringBuilder();
+        final private StringBuilder stringValue = new StringBuilder();
+        private boolean isDouble = false;
 
         SNumber(SValue sParent) {
             super(sParent);
@@ -113,16 +118,13 @@ public class JsonParser {
             final SElement result = super.parse(ch);
             if (result != null) {
                 return result;
-            } else if (Character.isDigit(ch)) {
-                value.append(ch);
+            } else if (Character.isDigit(ch) || ch == '-' || ch == '+') {
+                stringValue.append(ch);
                 return this;
-            } else if (ch == '-') {
-                if (value.length() > 0) {
-                    throw new ParseException("'-' is not expected here.");
-                } else {
-                    value.append(ch);
-                    return this;
-                }
+            } else if (ch == '.' || ch == 'e' || ch == 'E') {
+                isDouble = true;
+                stringValue.append(ch);
+                return this;
             } else {
                 return end().parse(ch);
             }
@@ -130,12 +132,19 @@ public class JsonParser {
 
         @Override
         public SElement end() {
-            eventSink.accept(Long.parseLong(value.toString()));
+            if (!NUMBER_FORMAT.matcher(stringValue).matches()) {
+                throw new ParseException(
+                        "'" + stringValue + "' does not match number format" +
+                                " '" + NUMBER_FORMAT.pattern() + "'");
+            }
+            if (isDouble) {
+                eventSink.accept(Double.parseDouble(stringValue.toString()));
+            } else {
+                eventSink.accept(Long.parseLong(stringValue.toString()));
+            }
             return parent;
         }
     }
-
-
 
     class SString extends SElement {
         final private StringBuilder value = new StringBuilder();
@@ -153,10 +162,73 @@ public class JsonParser {
                 eventSink.accept(value.toString());
                 return parent;
             } else if (ch == '\\') {
-                throw new RuntimeException("Escape parsing is not implemented."); // FIXME Parse escapes
+                return new SStringEscape(this);
             } else {
                 value.append(ch);
                 return this;
+            }
+        }
+
+        void appendCodePoint(int codePoint) {
+            value.appendCodePoint(codePoint);
+        }
+
+        void appendChar(char ch) {
+            value.append(ch);
+        }
+    }
+
+    class SStringEscape extends SElement {
+        private StringBuilder codeString;
+
+        public SStringEscape(SString sParent) {
+            super(sParent);
+        }
+
+        private char singleEscapeChar(char nextChar) {
+            switch (nextChar) {
+                case '"':
+                    return '"';
+                case '\\':
+                    return '\\';
+                case '/':
+                    return '/';
+                case 'b':
+                    return '\b';
+                case 'f':
+                    return '\f';
+                case 'n':
+                    return '\n';
+                case 'r':
+                    return '\r';
+                case 't':
+                    return '\t';
+                case 'u':
+                    return 'u';
+                default:
+                    throw new IllegalStateException("Unexpected escape '" + nextChar + "'");
+            }
+        }
+
+        @Override
+        public SElement parse(char ch) {
+            if (codeString == null) {
+                char eCh = singleEscapeChar(ch);
+                if (eCh == 'u') {
+                    codeString = new StringBuilder(5);
+                    return this;
+                } else {
+                    ((SString) parent).appendChar(eCh);
+                    return parent;
+                }
+            } else if (codeString.length() < 3) {
+                codeString.append(ch);
+                return this;
+            } else {
+                codeString.append(ch);
+                ((SString) parent).appendCodePoint(
+                        Integer.parseInt(codeString.toString(), 16));
+                return parent;
             }
         }
     }
@@ -239,8 +311,9 @@ public class JsonParser {
      * @param ch next input chars.
      */
     public void parseNext(final char ch) {
-        if (state == null)
+        if (state == null) {
             state = new SValue(null);
+        }
         state = state.parse(ch);
     }
 
