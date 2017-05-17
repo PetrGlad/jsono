@@ -41,6 +41,23 @@ public class JsonParser {
         }
     }
 
+    class SDoc extends SElement {
+        SDoc() {
+            super(null);
+        }
+
+        @Override
+        public SElement parse(char ch) {
+            return new SValue(this).parse(ch);
+        }
+
+        @Override
+        public SElement end() {
+            eventSink.accept(Event.END);
+            return this;
+        }
+    }
+
     class SValue extends SElement {
         SValue(SElement parent) {
             super(parent);
@@ -126,12 +143,18 @@ public class JsonParser {
                 stringValue.append(ch);
                 return this;
             } else {
-                return end().parse(ch);
+                complete();
+                return parent.parse(ch);
             }
         }
 
         @Override
         public SElement end() {
+            complete();
+            return parent.end();
+        }
+
+        private void complete() {
             if (!NUMBER_FORMAT.matcher(stringValue).matches()) {
                 throw new ParseException(
                         "'" + stringValue + "' does not match number format" +
@@ -142,7 +165,6 @@ public class JsonParser {
             } else {
                 eventSink.accept(Long.parseLong(stringValue.toString()));
             }
-            return parent;
         }
     }
 
@@ -299,7 +321,7 @@ public class JsonParser {
     }
 
     private final Consumer<Object> eventSink;
-    private SElement state;
+    private SElement state = new SDoc();
 
     public JsonParser(Consumer<Object> eventSink) {
         this.eventSink = eventSink;
@@ -311,9 +333,6 @@ public class JsonParser {
      * @param ch next input chars.
      */
     public void parseNext(final char ch) {
-        if (state == null) {
-            state = new SValue(null);
-        }
         state = state.parse(ch);
     }
 
@@ -323,10 +342,5 @@ public class JsonParser {
      */
     public void end() {
         state = state.end();
-        if (state instanceof SValue) {
-            eventSink.accept(Event.END);
-        } else {
-            throw new ParseException("Premature end of JSON document. State is " + state.getClass().getSimpleName());
-        }
     }
 }
