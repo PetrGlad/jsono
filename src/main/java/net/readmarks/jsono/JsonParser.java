@@ -79,8 +79,8 @@ public class JsonParser {
         final Object value;
         int pos = 0;
 
-        SConst(SValue sValue, String valueString, Object value) {
-            super(sValue);
+        SConst(SValue sParent, String valueString, Object value) {
+            super(sParent);
             this.valueString = valueString;
             this.value = value;
         }
@@ -104,8 +104,8 @@ public class JsonParser {
     class SNumber extends SElement {
         final private StringBuilder value = new StringBuilder();
 
-        SNumber(SValue sValue) {
-            super(sValue);
+        SNumber(SValue sParent) {
+            super(sParent);
         }
 
         @Override
@@ -135,11 +135,13 @@ public class JsonParser {
         }
     }
 
+
+
     class SString extends SElement {
         final private StringBuilder value = new StringBuilder();
 
-        SString(SElement sValue) {
-            super(sValue);
+        SString(SElement sParent) {
+            super(sParent);
         }
 
         @Override
@@ -169,8 +171,8 @@ public class JsonParser {
     class SObject extends SElement {
         private SObjectState sObjectState = SObjectState.START;
 
-        SObject(SValue sValue) {
-            super(sValue);
+        SObject(SValue sParent) {
+            super(sParent);
             eventSink.accept(Event.START_MAP);
         }
 
@@ -202,8 +204,8 @@ public class JsonParser {
     class SArray extends SElement {
         private boolean isFirst = true;
 
-        SArray(SValue sValue) {
-            super(sValue);
+        SArray(SValue sParent) {
+            super(sParent);
             eventSink.accept(Event.START_ARRAY);
         }
 
