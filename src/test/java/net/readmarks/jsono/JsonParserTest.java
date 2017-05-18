@@ -88,6 +88,24 @@ public class JsonParserTest {
                         END_ARRAY,
                         END},
                 parse("[{\"k\":[]}]"));
+        // Number parser uses outer container or EOF as terminator.
+        assertArrayEquals(
+                new Object[]{
+                        START_ARRAY,
+                        321L,
+                        END_ARRAY,
+                        END},
+                parse("[321]"));
+        assertArrayEquals(
+                new Object[]{
+                        START_MAP,
+                        MAP_KEY,
+                        "a",
+                        MAP_VALUE,
+                        321L,
+                        END_MAP,
+                        END},
+                parse("{\"a\" : 321}"));
     }
 
     @Test(expected = JsonParser.ParseException.class)
@@ -115,5 +133,20 @@ public class JsonParserTest {
     @Test(expected = JsonParser.ParseException.class)
     public void testControlSymbolsError() {
         parse("\"\n\"");
+    }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void testIvalidCodepointEscape1() {
+        parse("\"\\uw\"");
+    }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void testIvalidCodepointEscape2() {
+        parse("\"\\u111\"");
+    }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void testIvalidCodepointEscape3() {
+        parse("\"\\uaaaa");
     }
 }

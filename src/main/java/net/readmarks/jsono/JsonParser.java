@@ -172,7 +172,7 @@ public class JsonParser {
     }
 
     class SString extends SElement {
-        final private StringBuilder value = new StringBuilder();
+        final StringBuilder value = new StringBuilder();
 
         SString(SElement sParent) {
             super(sParent);
@@ -186,20 +186,12 @@ public class JsonParser {
             } else if (ch == '\\') {
                 return new SStringEscape(this);
             } else if (ch <= 0x1f) {
-                throw new ParseException("Unexpected character within string " + Integer.toHexString((int)ch)
-                        + "Control characters in range U+0000 to U+001F must be escaped.");
+                throw new ParseException("Unexpected character within string " + Integer.toHexString((int) ch) + "."
+                        + " Control characters in range U+0000 to U+001F must be escaped.");
             } else {
                 value.append(ch);
                 return this;
             }
-        }
-
-        void appendCodePoint(int codePoint) {
-            value.appendCodePoint(codePoint);
-        }
-
-        void appendChar(char ch) {
-            value.append(ch);
         }
     }
 
@@ -243,7 +235,7 @@ public class JsonParser {
                     codeString = new StringBuilder(5);
                     return this;
                 } else {
-                    ((SString) parent).appendChar(eCh);
+                    ((SString) parent).value.append(eCh);
                     return parent;
                 }
             } else if (codeString.length() < 3) {
@@ -251,9 +243,17 @@ public class JsonParser {
                 return this;
             } else {
                 codeString.append(ch);
-                ((SString) parent).appendCodePoint(
-                        Integer.parseInt(codeString.toString(), 16));
+                ((SString) parent).value.appendCodePoint(parseCodePoint());
                 return parent;
+            }
+        }
+
+        private int parseCodePoint() {
+            try {
+                return Integer.parseInt(codeString.toString(), 16);
+            } catch (NumberFormatException e) {
+                throw new ParseException("Invalid escape code point format '" + codeString.toString() + "'." +
+                        " Expecting exactly 4 hexadecimal digits.");
             }
         }
     }
