@@ -109,5 +109,11 @@ public class JsonParserTest {
         assertArrayEquals(new Object[]{"\b\f\n\r\t/\\", END}, parse("\"\\b\\f\\n\\r\\t\\/\\\\\""));
         assertArrayEquals(new Object[]{"\u2615f", END}, parse("\"\\u2615f\""));
         assertArrayEquals(new Object[]{"\u2615", END}, parse("\"\\u2615\""));
+        parse("\"\\n\"");
+    }
+
+    @Test(expected = JsonParser.ParseException.class)
+    public void testControlSymbolsError() {
+        parse("\"\n\"");
     }
 }

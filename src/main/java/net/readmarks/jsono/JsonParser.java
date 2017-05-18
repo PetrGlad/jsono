@@ -185,6 +185,9 @@ public class JsonParser {
                 return parent;
             } else if (ch == '\\') {
                 return new SStringEscape(this);
+            } else if (ch <= 0x1f) {
+                throw new ParseException("Unexpected character within string " + Integer.toHexString((int)ch)
+                        + "Control characters in range U+0000 to U+001F must be escaped.");
             } else {
                 value.append(ch);
                 return this;
