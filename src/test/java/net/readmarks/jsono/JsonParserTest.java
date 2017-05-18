@@ -34,20 +34,20 @@ public class JsonParserTest {
 
     @Test
     public void parseArray() {
-        assertArrayEquals(new Object[]{START_ARRAY, END_ARRAY, END}, parse("[]"));
-        assertArrayEquals(new Object[]{START_ARRAY, END_ARRAY, END}, parse("[ ]"));
-        assertArrayEquals(new Object[]{START_ARRAY, true, END_ARRAY, END}, parse("[true]"));
-        assertArrayEquals(new Object[]{START_ARRAY, null, true, "blurB", END_ARRAY, END}, parse("[null ,true, \"blurB\"]"));
+        assertArrayEquals(new Object[]{ARRAY, ARRAY_END, END}, parse("[]"));
+        assertArrayEquals(new Object[]{ARRAY, ARRAY_END, END}, parse("[ ]"));
+        assertArrayEquals(new Object[]{ARRAY, true, ARRAY_END, END}, parse("[true]"));
+        assertArrayEquals(new Object[]{ARRAY, null, true, "blurB", ARRAY_END, END}, parse("[null ,true, \"blurB\"]"));
     }
 
     @Test
     public void parseMap() {
-        assertArrayEquals(new Object[]{START_MAP, END_MAP, END}, parse("{}"));
+        assertArrayEquals(new Object[]{MAP, MAP_END, END}, parse("{}"));
         assertArrayEquals(
                 new Object[]{
-                        START_MAP,
+                        MAP,
                         MAP_KEY, "a", Event.MAP_VALUE, false,
-                        END_MAP,
+                        MAP_END,
                         END},
                 parse("{\"a\": false}"));
     }
@@ -57,7 +57,7 @@ public class JsonParserTest {
         assertArrayEquals(new Object[]{0L, END}, parse("0"));
         assertArrayEquals(new Object[]{-12L, END}, parse("-12"));
         assertArrayEquals(new Object[]{1234321L, END}, parse("1234321"));
-        assertArrayEquals(new Object[]{START_ARRAY, 1234L, END_ARRAY, END}, parse("[1234]"));
+        assertArrayEquals(new Object[]{ARRAY, 1234L, ARRAY_END, END}, parse("[1234]"));
     }
 
     @Test(expected = JsonParser.ParseException.class)
@@ -74,36 +74,36 @@ public class JsonParserTest {
     public void parseNested() {
         assertArrayEquals(
                 new Object[]{
-                        START_MAP,
-                        MAP_KEY, "k", MAP_VALUE, START_ARRAY, END_ARRAY,
-                        END_MAP,
+                        MAP,
+                        MAP_KEY, "k", MAP_VALUE, ARRAY, ARRAY_END,
+                        MAP_END,
                         END},
                 parse("{\"k\":[]}"));
         assertArrayEquals(
                 new Object[]{
-                        START_ARRAY,
-                        START_MAP,
-                        MAP_KEY, "k", MAP_VALUE, START_ARRAY, END_ARRAY,
-                        END_MAP,
-                        END_ARRAY,
+                        ARRAY,
+                        MAP,
+                        MAP_KEY, "k", MAP_VALUE, ARRAY, ARRAY_END,
+                        MAP_END,
+                        ARRAY_END,
                         END},
                 parse("[{\"k\":[]}]"));
         // Number parser uses outer container or EOF as terminator.
         assertArrayEquals(
                 new Object[]{
-                        START_ARRAY,
+                        ARRAY,
                         321L,
-                        END_ARRAY,
+                        ARRAY_END,
                         END},
                 parse("[321]"));
         assertArrayEquals(
                 new Object[]{
-                        START_MAP,
+                        MAP,
                         MAP_KEY,
                         "a",
                         MAP_VALUE,
                         321L,
-                        END_MAP,
+                        MAP_END,
                         END},
                 parse("{\"a\" : 321}"));
     }

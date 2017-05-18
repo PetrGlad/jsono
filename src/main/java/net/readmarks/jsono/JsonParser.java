@@ -7,10 +7,10 @@ public class JsonParser {
 
     public enum Event {
         END,
-        START_ARRAY,
-        END_ARRAY,
-        START_MAP,
-        END_MAP,
+        ARRAY,
+        ARRAY_END,
+        MAP,
+        MAP_END,
         MAP_KEY,
         MAP_VALUE
     }
@@ -270,7 +270,7 @@ public class JsonParser {
 
         SObject(SElement sParent) {
             super(sParent);
-            eventSink.accept(Event.START_MAP);
+            eventSink.accept(Event.MAP);
         }
 
         @Override
@@ -279,7 +279,7 @@ public class JsonParser {
             if (result != null) {
                 return result;
             } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.VALUE) && ch == '}') {
-                eventSink.accept(Event.END_MAP);
+                eventSink.accept(Event.MAP_END);
                 return parent;
             } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.KEY) && ch == '"') {
                 sObjectState = SObjectState.COLON;
@@ -303,7 +303,7 @@ public class JsonParser {
 
         SArray(SElement sParent) {
             super(sParent);
-            eventSink.accept(Event.START_ARRAY);
+            eventSink.accept(Event.ARRAY);
         }
 
         @Override
@@ -312,7 +312,7 @@ public class JsonParser {
             if (result != null) {
                 return result;
             } else if (ch == ']') {
-                eventSink.accept(Event.END_ARRAY);
+                eventSink.accept(Event.ARRAY_END);
                 return parent;
             } else if (expectComma) {
                 if (ch != ',') {
