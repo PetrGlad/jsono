@@ -1,14 +1,54 @@
+plugins {
+    id "com.jfrog.bintray" version "1.7.3"
+}
 apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group 'net.readmarks'
+version '0.1'
 
 repositories {
     jcenter()
-    maven {
+    maven { // Until the lib is published in a public repository
         url 'https://dl.bintray.com/petrglad/readmarks/'
     }
     // mavenCentral()
 }
 
+sourceCompatibility = 1.8
+
 dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'net.readmarks:utf8-decoder:1.0.1'
+}
+
+bintray {
+    user = bintrayUser // set this in gradle.properties
+    key = bintrayKey // set this in gradle.properties
+    publications = ['Publication']
+    pkg {
+        repo = 'readmarks'
+        name = project.name
+        licenses = ['Apache-2.0']
+        websiteUrl = 'https://github.com/PetrGlad/jsono'
+        vcsUrl = 'https://github.com/PetrGlad/jsono.git'
+        version {
+            name = project.version
+            desc = 'First release'
+            released = new Date()
+            vcsTag = 'v' + version
+        }
+    }
+}
+
+publishing {
+    publications {
+        Publication(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId project.name
+            version project.version
+        }
+    }
 }

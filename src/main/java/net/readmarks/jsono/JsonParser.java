@@ -26,6 +26,19 @@ import java.util.regex.Pattern;
  *   }
  *   p.end(); // Call this when there's no more input data to ensure that input is well-formed.
  * </pre>
+ * <p>
+ * Implementation questions
+ * <p>
+ * TODO Can we somehow typecheck emitted events?
+ * Downstream consumers accepting Object are confusing.
+ * I'd want to include Event and primitive values into the type.
+ * A solution could be to have wrappers for scalar types that implement same interface.
+ * Would that cause problem with garbage?
+ *
+ * TODO Parse states: Is it worthwhile to rewrite this class using explicit stack instead of chain of objects
+ * that refer their parents? Or use pool for these objects? Would this reduce amount of garbage?
+ *
+ * TODO Implement an existing API (see reactive-streams) in handlers
  *
  * @see NestingCounter
  */
@@ -36,9 +49,9 @@ public class JsonParser {
     ARRAY,
     ARRAY_END,
     MAP,
-    MAP_END,
     MAP_KEY,
-    MAP_VALUE
+    MAP_VALUE,
+    MAP_END
   }
 
   public static class ParseException extends RuntimeException {
