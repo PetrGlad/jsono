@@ -109,7 +109,7 @@ public class SimpleDeserializer implements Consumer<Object> {
   @Override
   public void accept(Object o) {
     if (state == null) {
-      throw new IllegalStateException("Event beyond end.");
+      throw new IllegalStateException("No more events expected (got " + o + ").");
     }
     state = state.apply(o);
   }
