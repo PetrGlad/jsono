@@ -46,7 +46,7 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    MAP_KEY, "a", Event.MAP_VALUE, false,
+                    "a", false,
                     MAP_END,
                     END},
             parse("{\"a\": false}"));
@@ -75,7 +75,7 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    MAP_KEY, "k", MAP_VALUE, ARRAY, ARRAY_END,
+                    "k", ARRAY, ARRAY_END,
                     MAP_END,
                     END},
             parse("{\"k\":[]}"));
@@ -83,7 +83,7 @@ public class JsonParserTest {
             new Object[]{
                     ARRAY,
                     MAP,
-                    MAP_KEY, "k", MAP_VALUE, ARRAY, ARRAY_END,
+                    "k", ARRAY, ARRAY_END,
                     MAP_END,
                     ARRAY_END,
                     END},
@@ -99,10 +99,7 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    MAP_KEY,
-                    "a",
-                    MAP_VALUE,
-                    321L,
+                    "a", 321L,
                     MAP_END,
                     END},
             parse("{\"a\" : 321}"));

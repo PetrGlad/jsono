@@ -13,29 +13,19 @@ public class SimpleDeserializer implements Consumer<Object> {
   interface State extends Function<Object, State> {
   }
 
-  class AnyValue implements State {
-    final State parent;
-
-    public AnyValue(State parent) {
-      this.parent = parent;
-    }
-
-    @Override
-    public State apply(Object o) {
-      if (o == Event.ARRAY) {
-        return new ArrayValue(this);
-      } else if (o == Event.MAP) {
-        return new MapValue(this);
-      } else {
-        return parent.apply(o);
-      }
+  private State anyValue(State parent, Object o) {
+    if (o == Event.ARRAY) {
+      return new ArrayValue(parent);
+    } else if (o == Event.MAP) {
+      return new MapValue(parent);
+    } else {
+      return parent.apply(o);
     }
   }
 
   class MapValue implements State {
     final State parent;
     final Map<String, Object> result = new HashMap<>();
-    private Event mapState; // TODO Remove Event.MAP_KEY and Event.MAP_VALUE (should handle key/val interleaving anyway here)
     private String key;
 
     public MapValue(State parent) {
@@ -45,18 +35,15 @@ public class SimpleDeserializer implements Consumer<Object> {
     @Override
     public State apply(Object o) {
       assert o != Event.END;
-      if (o == Event.MAP_KEY || o == Event.MAP_VALUE) {
-        mapState = (Event) o;
-      } else if (o == Event.MAP_END) {
+      if (o == Event.MAP_END) {
         return parent.apply(result);
-      } else if (mapState == Event.MAP_KEY) {
+      } else if (key == null) {
         key = (String) o;
-      } else if (mapState == Event.MAP_VALUE) {
-        if (o instanceof Event) {
-          return new AnyValue(this).apply(o);
-        } else {
-          result.put(key, o);
-        }
+      } else if (o instanceof Event) {
+        return anyValue(this, o);
+      } else {
+        result.put(key, o);
+        key = null;
       }
       return this;
     }
@@ -76,7 +63,7 @@ public class SimpleDeserializer implements Consumer<Object> {
         return parent.apply(result);
       } else {
         if (o instanceof Event) {
-          return new AnyValue(this).apply(o);
+          return anyValue(this, o);
         } else {
           result.add(o);
         }
@@ -93,8 +80,7 @@ public class SimpleDeserializer implements Consumer<Object> {
       if (o == Event.END) {
         return null;
       } else if (o instanceof Event) {
-        return new AnyValue(this)
-                .apply(o);
+        return anyValue(this, o);
       } else {
         out.accept(o);
         return this;

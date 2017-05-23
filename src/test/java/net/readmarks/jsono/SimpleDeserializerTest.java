@@ -10,12 +10,12 @@ import java.util.Map;
 
 public class SimpleDeserializerTest {
   @Test
-  void deserializeTest() {
+  public void deserializeTest() {
     final JsonParser jsonParser = new JsonParser(
             new NestingCounter()
                     .andThen(new SimpleDeserializer(struct ->
                     {
-                      System.out.println("Result: " + struct);
+//                      System.out.println("Result: " + struct);
                       if (!getExpectedResult().equals(struct)) {
                         throw new AssertionError("Deserialized struct does not match expected one.");
                       }
@@ -50,5 +50,15 @@ public class SimpleDeserializerTest {
       result.add(map2);
     }
     return result;
+  }
+
+  public static void main(String[] args) {
+    final long t1 = System.currentTimeMillis();
+    final int N = 2000000;
+    for (int ll = 0; ll < N; ll++) {
+      new SimpleDeserializerTest().deserializeTest();
+    }
+    System.out.println("Completed: " + (1.0 * N / (System.currentTimeMillis() - t1)) + " structs/mSec.");
+
   }
 }

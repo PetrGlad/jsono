@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * <p>
  * Array is represented as ARRAY, value1, value2, ..., ARRAY_END
  * <p>
- * Map/object is represented as MAP, MAP_KEY, key1, MAP_VALUE, value2, ..., MAP_END
+ * Map/object is represented as MAP, key1, value1, key2, value2, ... , MAP_END
  * <p>
  * Event END is emitted at the end of well formed input.
  * <p>
@@ -45,13 +45,11 @@ import java.util.regex.Pattern;
 public class JsonParser {
 
   public enum Event {
-    END,
     ARRAY,
     ARRAY_END,
     MAP,
-    MAP_KEY,
-    MAP_VALUE,
-    MAP_END
+    MAP_END,
+    END
   }
 
   public static class ParseException extends RuntimeException {
@@ -322,11 +320,9 @@ public class JsonParser {
         return parent;
       } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.KEY) && ch == '"') {
         sObjectState = SObjectState.COLON;
-        eventSink.accept(Event.MAP_KEY);
         return new SString(this);
       } else if (sObjectState == SObjectState.COLON && ch == ':') {
         sObjectState = SObjectState.VALUE;
-        eventSink.accept(Event.MAP_VALUE);
         return new SValue(this);
       } else if (sObjectState == SObjectState.VALUE && ch == ',') {
         sObjectState = SObjectState.KEY;

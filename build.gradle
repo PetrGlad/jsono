@@ -21,6 +21,7 @@ sourceCompatibility = 1.8
 dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'net.readmarks:utf8-decoder:1.0.1'
+    testCompile 'com.fasterxml.jackson.core:jackson-core:2.8.4'
 }
 
 bintray {
