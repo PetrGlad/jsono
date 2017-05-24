@@ -1,63 +1,68 @@
 package net.readmarks.jsono;
 
-import net.readmarks.jsono.JsonParser.Event;
+import net.readmarks.jsono.handler.StreamingHandler;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 
-import static net.readmarks.jsono.JsonParser.Event.*;
-import static org.junit.Assert.*;
+import static net.readmarks.jsono.handler.StreamingHandler.Event.*;
+import static org.junit.Assert.assertArrayEquals;
 
 public class JsonParserTest {
-  static Object[] parse(String json) {
-    final List<Object> result = new ArrayList<>();
-    final JsonParser p = new JsonParser(result::add);
+  private static Object[] parse(String json) {
+    final Stream.Builder<Object> result = Stream.builder();
+    final JsonParser p = new JsonParser(new StreamingHandler(result::add));
     for (int i = 0; i < json.length(); i++) {
       p.parseNext(json.charAt(i));
     }
     p.end();
-    return result.toArray();
+    return result.build().toArray();
   }
 
   @Test
   public void parseConstants() {
-    assertArrayEquals(new Object[]{null, END}, parse("null"));
-    assertArrayEquals(new Object[]{true, END}, parse("true"));
-    assertArrayEquals(new Object[]{false, END}, parse("false"));
+    assertArrayEquals(new Object[]{null}, parse("null"));
+    assertArrayEquals(new Object[]{true}, parse("true"));
+    assertArrayEquals(new Object[]{false}, parse("false"));
   }
 
   @Test
   public void skipWhitespace() {
-    assertArrayEquals(new Object[]{false, END}, parse("   false\t"));
+    assertArrayEquals(new Object[]{false}, parse("   false\t"));
   }
 
   @Test
   public void parseArray() {
-    assertArrayEquals(new Object[]{ARRAY, ARRAY_END, END}, parse("[]"));
-    assertArrayEquals(new Object[]{ARRAY, ARRAY_END, END}, parse("[ ]"));
-    assertArrayEquals(new Object[]{ARRAY, true, ARRAY_END, END}, parse("[true]"));
-    assertArrayEquals(new Object[]{ARRAY, null, true, "blurB", ARRAY_END, END}, parse("[null ,true, \"blurB\"]"));
+    assertArrayEquals(new Object[]{ARRAY, END}, parse("[]"));
+    assertArrayEquals(new Object[]{ARRAY, END}, parse("[ ]"));
+    assertArrayEquals(new Object[]{ARRAY, true, END}, parse("[true]"));
+    assertArrayEquals(new Object[]{ARRAY, null, true, "blurB", END}, parse("[null ,true, \"blurB\"]"));
   }
 
   @Test
   public void parseMap() {
-    assertArrayEquals(new Object[]{MAP, MAP_END, END}, parse("{}"));
+    assertArrayEquals(new Object[]{MAP, END}, parse("{}"));
     assertArrayEquals(
             new Object[]{
                     MAP,
                     "a", false,
-                    MAP_END,
                     END},
             parse("{\"a\": false}"));
+    assertArrayEquals(
+            new Object[]{
+                    MAP,
+                    "a", false,
+                    "b", true,
+                    END},
+            parse("{\"a\": false, \"b\":true}"));
   }
 
   @Test
   public void parseNumbers() {
-    assertArrayEquals(new Object[]{0L, END}, parse("0"));
-    assertArrayEquals(new Object[]{-12L, END}, parse("-12"));
-    assertArrayEquals(new Object[]{1234321L, END}, parse("1234321"));
-    assertArrayEquals(new Object[]{ARRAY, 1234L, ARRAY_END, END}, parse("[1234]"));
+    assertArrayEquals(new Object[]{0L}, parse("0"));
+    assertArrayEquals(new Object[]{-12L}, parse("-12"));
+    assertArrayEquals(new Object[]{1234321L}, parse("1234321"));
+    assertArrayEquals(new Object[]{ARRAY, 1234L, END}, parse("[1234]"));
   }
 
   @Test(expected = JsonParser.ParseException.class)
@@ -75,17 +80,15 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    "k", ARRAY, ARRAY_END,
-                    MAP_END,
+                    "k", ARRAY, END,
                     END},
             parse("{\"k\":[]}"));
     assertArrayEquals(
             new Object[]{
                     ARRAY,
                     MAP,
-                    "k", ARRAY, ARRAY_END,
-                    MAP_END,
-                    ARRAY_END,
+                    "k", ARRAY, END,
+                    END,
                     END},
             parse("[{\"k\":[]}]"));
     // Number parser uses outer container or EOF as terminator.
@@ -93,14 +96,12 @@ public class JsonParserTest {
             new Object[]{
                     ARRAY,
                     321L,
-                    ARRAY_END,
                     END},
             parse("[321]"));
     assertArrayEquals(
             new Object[]{
                     MAP,
                     "a", 321L,
-                    MAP_END,
                     END},
             parse("{\"a\" : 321}"));
   }
@@ -112,18 +113,18 @@ public class JsonParserTest {
 
   @Test
   public void testNumbers() {
-    assertArrayEquals(new Object[]{0L, END}, parse("0"));
-    assertArrayEquals(new Object[]{1.23e12, END}, parse("0.123e+13"));
+    assertArrayEquals(new Object[]{0L}, parse("0"));
+    assertArrayEquals(new Object[]{1.23e12}, parse("0.123e+13"));
   }
 
   @Test
   public void testStrings() {
-    assertArrayEquals(new Object[]{" a", END}, parse("\" a\""));
-    assertArrayEquals(new Object[]{"\\%2", END}, parse("\"\\\\%2\""));
-    assertArrayEquals(new Object[]{"\" \\%22\"", END}, parse("\"\\u0022 \\\\%22\\\"\""));
-    assertArrayEquals(new Object[]{"\b\f\n\r\t/\\", END}, parse("\"\\b\\f\\n\\r\\t\\/\\\\\""));
-    assertArrayEquals(new Object[]{"\u2615f", END}, parse("\"\\u2615f\""));
-    assertArrayEquals(new Object[]{"\u2615", END}, parse("\"\\u2615\""));
+    assertArrayEquals(new Object[]{" a"}, parse("\" a\""));
+    assertArrayEquals(new Object[]{"\\%2"}, parse("\"\\\\%2\""));
+    assertArrayEquals(new Object[]{"\" \\%22\""}, parse("\"\\u0022 \\\\%22\\\"\""));
+    assertArrayEquals(new Object[]{"\b\f\n\r\t/\\"}, parse("\"\\b\\f\\n\\r\\t\\/\\\\\""));
+    assertArrayEquals(new Object[]{"\u2615f"}, parse("\"\\u2615f\""));
+    assertArrayEquals(new Object[]{"\u2615"}, parse("\"\\u2615\""));
     parse("\"\\n\"");
   }
 

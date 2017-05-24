@@ -1,56 +1,32 @@
 package net.readmarks.jsono;
 
-import java.util.function.Consumer;
+import net.readmarks.jsono.handler.HandlerUtil;
+import net.readmarks.jsono.handler.NestingCounter;
+
 import java.util.regex.Pattern;
 
 /**
- * Incremental non blocking JSON parser. Emits parsed events synchronously when enough text is provided.
- * Instantiates scalar types (null, boolean, number) and strings.
- * Containers (arrays and maps) are emitted  as sequence of events.
+ * Incremental reactive non blocking JSON parser. Emits parsed events synchronously when enough input text is provided.
+ * Instantiates scalar types (null, boolean, number) and strings. Numbers are represented as Long or Double
+ * depending on whether value has a fraction or exponent part.
+ * Containers (arrays and maps) are emitted as sequence of events.
  * <p>
- * Array is represented as ARRAY, value1, value2, ..., ARRAY_END
+ * Array is represented as ARRAY, value1, value2, ..., END
  * <p>
- * Map/object is represented as MAP, key1, value1, key2, value2, ... , MAP_END
- * <p>
- * Event END is emitted at the end of well formed input.
+ * Map/object is represented as MAP, key1, value1, key2, value2, ... , END
  * <p>
  * The parser accepts top-level sequence of documents/values (possibly whitespace delimited).
- * That is this input text "{} {}" will produce MAP, MAP_END, MAP, MAP_END, END
+ * E.g. this input text "{} {}" will produce MAP, END, MAP, END.
  * <p>
- * Example usage is
- * <pre>
- *   final String json = "[null,true,\"blUr \\u266b\" ,314e-2]";
- *   final JsonParser p = new JsonParser(System.out::println); // Handle events in this callback
- *   for (int i = 0; i < json.length(); i++) {
- *     p.parseNext(json.charAt(i));
- *   }
- *   p.end(); // Call this when there's no more input data to ensure that input is well-formed.
- * </pre>
- * <p>
- * Implementation questions
- * <p>
- * TODO Can we somehow typecheck emitted events?
- * Downstream consumers accepting Object are confusing.
- * I'd want to include Event and primitive values into the type.
- * A solution could be to have wrappers for scalar types that implement same interface.
- * Would that cause problem with garbage?
+ * An instance of {@link EventHandler} is used to process resulting events.
+ * Unless you have specific requirements use {@link #makeDefault(EventHandler)} to construct new instance of parser.
  *
- * TODO Parse states: Is it worthwhile to rewrite this class using explicit stack instead of chain of objects
- * that refer their parents? Or use pool for these objects? Would this reduce amount of garbage?
+ * Look into package net.readmarks.jsono.handler for examples of event handlers.
+ * See tests and benchmarks for example usage.
  *
- * TODO Implement an existing API (see reactive-streams) in handlers
- *
- * @see NestingCounter
+ * @see EventHandler
  */
 public class JsonParser {
-
-  public enum Event {
-    ARRAY,
-    ARRAY_END,
-    MAP,
-    MAP_END,
-    END
-  }
 
   public static class ParseException extends RuntimeException {
     ParseException(String s) {
@@ -90,8 +66,8 @@ public class JsonParser {
 
     @Override
     public SElement end() {
-      eventSink.accept(Event.END);
-      return this;
+
+      return this; 
     }
   }
 
@@ -106,7 +82,7 @@ public class JsonParser {
       if (result != null) {
         return result;
       } else if (ch == '{') {
-        return new SObject(parent);
+        return new SMap(parent);
       } else if (ch == '[') {
         return new SArray(parent);
       } else if (ch == '"') {
@@ -145,7 +121,7 @@ public class JsonParser {
     public SElement parse(char ch) {
       if (ch == valueString.charAt(pos)) {
         if (pos == valueString.length() - 1) {
-          eventSink.accept(value);
+          eventHandler.onValue(value);
           return parent;
         } else {
           pos++;
@@ -201,9 +177,9 @@ public class JsonParser {
                         " '" + NUMBER_FORMAT.pattern() + "'");
       }
       if (isDouble) {
-        eventSink.accept(Double.parseDouble(stringValue.toString()));
+        eventHandler.onValue(Double.parseDouble(stringValue.toString()));
       } else {
-        eventSink.accept(Long.parseLong(stringValue.toString()));
+        eventHandler.onValue(Long.parseLong(stringValue.toString()));
       }
     }
   }
@@ -218,7 +194,7 @@ public class JsonParser {
     @Override
     public SElement parse(char ch) {
       if (ch == '"') {
-        eventSink.accept(value.toString());
+        eventHandler.onValue(value.toString());
         return parent;
       } else if (ch == '\\') {
         return new SStringEscape(this);
@@ -302,12 +278,12 @@ public class JsonParser {
     VALUE
   }
 
-  class SObject extends SElement {
+  class SMap extends SElement {
     private SObjectState sObjectState = SObjectState.START;
 
-    SObject(SElement sParent) {
+    SMap(SElement sParent) {
       super(sParent);
-      eventSink.accept(Event.MAP);
+      eventHandler.onMap();
     }
 
     @Override
@@ -316,7 +292,7 @@ public class JsonParser {
       if (result != null) {
         return result;
       } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.VALUE) && ch == '}') {
-        eventSink.accept(Event.MAP_END);
+        eventHandler.onEnd();
         return parent;
       } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.KEY) && ch == '"') {
         sObjectState = SObjectState.COLON;
@@ -338,7 +314,7 @@ public class JsonParser {
 
     SArray(SElement sParent) {
       super(sParent);
-      eventSink.accept(Event.ARRAY);
+      eventHandler.onArray();
     }
 
     @Override
@@ -347,7 +323,7 @@ public class JsonParser {
       if (result != null) {
         return result;
       } else if (ch == ']') {
-        eventSink.accept(Event.ARRAY_END);
+        eventHandler.onEnd();
         return parent;
       } else if (expectComma) {
         if (ch != ',') {
@@ -362,11 +338,16 @@ public class JsonParser {
     }
   }
 
-  private final Consumer<Object> eventSink;
+  private final EventHandler eventHandler;
   private SElement state = new SDoc();
 
-  public JsonParser(Consumer<Object> eventSink) {
-    this.eventSink = eventSink;
+  /**
+   * It is recommended to use {@link #makeDefault(EventHandler)} instead of this constructor.
+   *
+   * @param eventHandler Will receive parsed JSON events
+   */
+  public JsonParser(EventHandler eventHandler) {
+    this.eventHandler = eventHandler;
   }
 
   /**
@@ -384,5 +365,14 @@ public class JsonParser {
    */
   public void end() {
     state = state.end();
+  }
+
+  /**
+   * @param handler Will receive parsed JSON events.
+   * @return New instance of JsonParser with default configuration.
+   */
+  public static JsonParser makeDefault(EventHandler handler) {
+    return new JsonParser(
+            HandlerUtil.then(new NestingCounter(), handler));
   }
 }

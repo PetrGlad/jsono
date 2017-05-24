@@ -1,8 +1,7 @@
-package net.readmarks.jsono;
+package net.readmarks.jsono.handler;
 
-import net.readmarks.jsono.JsonParser.Event;
 
-import java.util.function.Consumer;
+import net.readmarks.jsono.EventHandler;
 
 /**
  * Counts structural depth of a JSON document.
@@ -12,7 +11,7 @@ import java.util.function.Consumer;
  * Does not check whether begin/end tokens are matching (e.g. {[}] case). That is expected to be validated already
  * by upstream parser (event source);
  */
-public class NestingCounter implements Consumer<Object> {
+public class NestingCounter implements EventHandler {
   private final int limit;
   private int depth;
 
@@ -31,26 +30,37 @@ public class NestingCounter implements Consumer<Object> {
     return depth;
   }
 
-  @Override
-  public void accept(Object jsonEvent) {
-    if (jsonEvent instanceof Event) {
-      switch ((Event) jsonEvent) {
-        case ARRAY:
-        case MAP:
-          if (depth >= limit) {
-            throw new IllegalStateException("Nesting depth " + depth + " reached limit.");
-          }
-          depth++;
-          break;
-        case ARRAY_END:
-        case MAP_END:
-          if (depth <= 0) {
-            throw new IllegalStateException("Nesting error.");
-          }
-          depth--;
-          break;
-        default:
-      }
+
+  private void down() {
+    if (depth >= limit) {
+      throw new IllegalStateException("Nesting depth " + depth + " reached limit.");
     }
+    depth++;
+  }
+
+  private void up() {
+    if (depth <= 0) {
+      throw new IllegalStateException("Nesting error.");
+    }
+    depth--;
+  }
+
+  @Override
+  public void onValue(Object x) {
+  }
+
+  @Override
+  public void onArray() {
+    down();
+  }
+
+  @Override
+  public void onMap() {
+    down();
+  }
+
+  @Override
+  public void onEnd() {
+    up();
   }
 }

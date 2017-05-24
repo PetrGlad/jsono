@@ -6,7 +6,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'net.readmarks'
-version '0.1'
+version '0.2'
 
 repositories {
     jcenter()

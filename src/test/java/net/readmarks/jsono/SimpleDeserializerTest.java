@@ -1,5 +1,6 @@
 package net.readmarks.jsono;
 
+import net.readmarks.jsono.handler.SimpleDeserializer;
 import net.readmarks.utf8.Utf8Decoder;
 import org.junit.Test;
 
@@ -11,18 +12,17 @@ import java.util.Map;
 public class SimpleDeserializerTest {
   @Test
   public void deserializeTest() {
-    final JsonParser jsonParser = new JsonParser(
-            new NestingCounter()
-                    .andThen(new SimpleDeserializer(struct ->
-                    {
-//                      System.out.println("Result: " + struct);
-                      if (!getExpectedResult().equals(struct)) {
-                        throw new AssertionError("Deserialized struct does not match expected one.");
-                      }
-                    })));
+    final JsonParser jsonParser = JsonParser.makeDefault(
+            new SimpleDeserializer(struct ->
+            {
+              // System.out.println("Result: " + struct);
+              if (!getExpectedResult().equals(struct)) {
+                throw new AssertionError("Deserialized struct does not match expected one.");
+              }
+            }));
     final Utf8Decoder utf8decoder = new Utf8Decoder(jsonParser::parseNext);
     utf8decoder.put(("[null,true,\"blUr \\u266b\" ,314e-2," +
-            " {\"full-name\":[\"Cromwell\", \"jr.\", \"III\", \"Esq.\"]}," +
+            " {\"full-name\":[\"Thomas Thumbson\", \"jr.\", \"III\", \"Esq.\"]}," +
             " {\"name\":\"Elvis \\u266b\"}]").getBytes());
     utf8decoder.end();
     jsonParser.end();
@@ -36,7 +36,7 @@ public class SimpleDeserializerTest {
     result.add(3.14);
     {
       final List<String> names = new ArrayList<>();
-      names.add("Cromwell");
+      names.add("Thomas Thumbson");
       names.add("jr.");
       names.add("III");
       names.add("Esq.");
@@ -52,6 +52,9 @@ public class SimpleDeserializerTest {
     return result;
   }
 
+  /**
+   * MicroBenchmark
+   */
   public static void main(String[] args) {
     final long t1 = System.currentTimeMillis();
     final int N = 2000000;
@@ -59,6 +62,5 @@ public class SimpleDeserializerTest {
       new SimpleDeserializerTest().deserializeTest();
     }
     System.out.println("Completed: " + (1.0 * N / (System.currentTimeMillis() - t1)) + " structs/mSec.");
-
   }
 }

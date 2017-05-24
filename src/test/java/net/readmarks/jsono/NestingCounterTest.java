@@ -1,5 +1,6 @@
 package net.readmarks.jsono;
 
+import net.readmarks.jsono.handler.NestingCounter;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,36 +15,36 @@ public class NestingCounterTest {
   public void testCounting() {
     final NestingCounter c = new NestingCounter();
     assertEquals(0, c.getDepth());
-    c.accept(JsonParser.Event.ARRAY);
+    c.onArray();
     assertEquals(1, c.getDepth());
-    c.accept(JsonParser.Event.MAP);
+    c.onMap();
     assertEquals(2, c.getDepth());
-    c.accept(JsonParser.Event.ARRAY_END);
+    c.onEnd();
     assertEquals(1, c.getDepth());
-    c.accept(JsonParser.Event.MAP_END);
+    c.onEnd();
     assertEquals(0, c.getDepth());
   }
 
   @Test(expected = IllegalStateException.class)
   public void testUnderflow() {
-    new NestingCounter(5).accept(JsonParser.Event.MAP_END);
+    new NestingCounter(5).onEnd();
   }
 
   @Test(expected = IllegalStateException.class)
   public void testOverflow() {
     final NestingCounter c = new NestingCounter(0);
-    c.accept(JsonParser.Event.MAP);
+    c.onMap();
   }
 
   @Test
   public void testOverflowDefault() {
     final NestingCounter c = new NestingCounter();
     for (int i = 0; i < 1000; i++) {
-      c.accept(JsonParser.Event.ARRAY);
+      c.onArray();
       assertEquals(i + 1, c.getDepth());
     }
     try {
-      c.accept(JsonParser.Event.ARRAY);
+      c.onArray();
       fail("Exception expected.");
     } catch (IllegalStateException e) {
       // Expected
