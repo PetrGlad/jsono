@@ -2,6 +2,7 @@ plugins {
     id "com.jfrog.bintray" version "1.7.3"
 }
 apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
@@ -24,22 +25,39 @@ dependencies {
     testCompile 'com.fasterxml.jackson.core:jackson-core:2.8.4'
 }
 
-bintray {
-    user = bintrayUser // set this in gradle.properties
-    key = bintrayKey // set this in gradle.properties
-    publications = ['Publication']
-    pkg {
-        repo = 'readmarks'
-        name = project.name
-        licenses = ['Apache-2.0']
-        websiteUrl = 'https://github.com/PetrGlad/jsono'
-        vcsUrl = 'https://github.com/PetrGlad/jsono.git'
-        version {
-            name = project.version
-            desc = 'First release'
-            released = new Date()
-            vcsTag = 'v' + version
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
         }
+    }
+    developers {
+        developer {
+            id "petrglad"
+            name "Petr Gladkikh"
+            email "petrglad@gmail.com"
+        }
+    }
+    scm {
+        url 'https://github.com/PetrGlad/jsono.git'
     }
 }
 
@@ -50,6 +68,34 @@ publishing {
             groupId project.group
             artifactId project.name
             version project.version
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Reactive non blocking JSON parser.')
+                root.appendNode('name', 'Jsono')
+                root.appendNode('url', 'https://github.com/PetrGlad/jsono')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+// See also https://github.com/bintray/gradle-bintray-plugin/blob/master/README.md
+bintray {
+    user = bintrayUser // set this in gradle.properties
+    key = bintrayKey // set this in gradle.properties
+    publications = ['Publication']
+    pkg {
+        repo = 'readmarks'
+        name = project.name
+        licenses = ['Apache-2.0']
+//        websiteUrl = websiteUrl
+//        vcsUrl = vcsUrl
+        githubRepo = 'PetrGlad/jsono'
+        version {
+            name = project.version
+            desc = 'Latest release'
+            released = new Date()
+            vcsTag = 'v' + project.version
         }
     }
 }
