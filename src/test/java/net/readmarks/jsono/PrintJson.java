@@ -2,12 +2,16 @@ package net.readmarks.jsono;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import net.readmarks.jsono.handler.EventToGenerator;
 import net.readmarks.jsono.handler.HandlerUtil;
 import net.readmarks.jsono.handler.NestingCounter;
 import net.readmarks.utf8.Utf8Decoder;
 
 import java.io.*;
 
+/**
+ * Example of JsonParser usage with Jackson JSON generator.
+ */
 public class PrintJson {
 
   public static void main(String[] args) throws IOException {

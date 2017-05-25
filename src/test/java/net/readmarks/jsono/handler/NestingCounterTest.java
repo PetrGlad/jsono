@@ -1,4 +1,4 @@
-package net.readmarks.jsono;
+package net.readmarks.jsono.handler;
 
 import net.readmarks.jsono.handler.NestingCounter;
 import org.junit.Test;

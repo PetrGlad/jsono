@@ -1,7 +1,9 @@
-package net.readmarks.jsono;
+package net.readmarks.jsono.handler;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
+import net.readmarks.jsono.EventHandler;
+import net.readmarks.jsono.PrintJson;
 
 import java.io.IOException;
 

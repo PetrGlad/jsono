@@ -1,6 +1,6 @@
-package net.readmarks.jsono;
+package net.readmarks.jsono.handler;
 
-import net.readmarks.jsono.handler.SimpleDeserializer;
+import net.readmarks.jsono.JsonParser;
 import net.readmarks.utf8.Utf8Decoder;
 import org.junit.Test;
 

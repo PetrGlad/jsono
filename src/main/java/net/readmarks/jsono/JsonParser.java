@@ -66,7 +66,6 @@ public class JsonParser {
 
     @Override
     public SElement end() {
-
       return this; 
     }
   }
