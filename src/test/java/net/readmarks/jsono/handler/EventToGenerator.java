@@ -15,6 +15,7 @@ import java.io.IOException;
 public class EventToGenerator implements EventHandler {
 
   private final JsonGenerator generator;
+  private boolean writeKey = false;
 
   public EventToGenerator(JsonGenerator generator) {
     this.generator = generator;
@@ -26,8 +27,9 @@ public class EventToGenerator implements EventHandler {
       final JsonStreamContext ctx = generator.getOutputContext();
       if (x instanceof String
               && ctx.inObject()
-              && ctx.getCurrentName() == null) {
+              && writeKey) {
         generator.writeFieldName((String) x);
+        writeKey = false;
       } else {
         generator.writeObject(x);
       }
@@ -52,6 +54,11 @@ public class EventToGenerator implements EventHandler {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void onMapKey() {
+    writeKey = true;
   }
 
   @Override

@@ -23,8 +23,15 @@ public interface EventHandler {
   void onMap();
 
   /**
-   * End of most recent data structure.
-   * Every call to {@link #onArray()} or {@link #onMap()} is eventually followed by it's {@link #onEnd()} call.
+   * Signals that next {@link #onValue(Object)} call will provide map key.
+   *
+   * Tentative, might be removed in future versions.
+   * It is possible to ignore this event and explicitly handle key/value interleaving.
+   */
+  void onMapKey();
+
+  /**
+   * End of most recent nested data structure (map or array).
    */
   void onEnd();
 }

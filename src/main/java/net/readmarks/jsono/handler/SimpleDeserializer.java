@@ -108,6 +108,10 @@ public class SimpleDeserializer implements EventHandler {
   }
 
   @Override
+  public void onMapKey() {
+  }
+
+  @Override
   public void onEnd() {
     assert state != null;
     final State p = state.getParent();

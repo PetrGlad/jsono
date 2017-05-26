@@ -33,7 +33,7 @@ public class PrintJson {
       final Utf8Decoder utf8parser = new Utf8Decoder(parser::parseNext);
       int b = in.read();
       while (b != -1) {
-        // TODO (API) Allow reading sub-range of provided array in UTF-decoder
+        // TODO (API) Allow decoding sub-range of provided array in UTF-decoder.
         utf8parser.put(new byte[]{(byte) b});
         b = in.read();
       }

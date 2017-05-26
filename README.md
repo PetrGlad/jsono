@@ -40,6 +40,7 @@ available then pretty much any other JSON library might be sufficient:
 
 * https://github.com/FasterXML/jackson
 * https://github.com/google/gson
+* https://github.com/ralfstx/minimal-json
 * https://github.com/stleary/JSON-java
 * https://github.com/boonproject/boon
 
