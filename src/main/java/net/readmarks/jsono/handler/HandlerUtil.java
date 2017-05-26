@@ -30,6 +30,12 @@ public class HandlerUtil {
       }
 
       @Override
+      public void onMapKey() {
+        a.onMapKey();
+        b.onMapKey();
+      }
+
+      @Override
       public void onEnd() {
         a.onEnd();
         b.onEnd();

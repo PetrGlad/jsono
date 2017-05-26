@@ -9,12 +9,6 @@ import java.util.function.Consumer;
  * Primitive values are passed as is, nested structures are delimited by {@link Event} values.
  */
 public class StreamingHandler implements EventHandler {
-  public enum Event {
-    ARRAY,
-    MAP,
-    END
-  }
-
   private final Consumer<Object> sink;
 
   public StreamingHandler(Consumer<Object> sink) {
@@ -35,6 +29,11 @@ public class StreamingHandler implements EventHandler {
   @Override
   public void onMap() {
     sink.accept(Event.MAP);
+  }
+
+  @Override
+  public void onMapKey() {
+    sink.accept(Event.KEY);
   }
 
   @Override

@@ -294,6 +294,7 @@ public class JsonParser {
         eventHandler.onEnd();
         return parent;
       } else if ((sObjectState == SObjectState.START || sObjectState == SObjectState.KEY) && ch == '"') {
+        eventHandler.onMapKey();
         sObjectState = SObjectState.COLON;
         return new SString(this);
       } else if (sObjectState == SObjectState.COLON && ch == ':') {

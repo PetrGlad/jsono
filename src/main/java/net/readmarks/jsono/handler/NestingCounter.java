@@ -30,7 +30,6 @@ public class NestingCounter implements EventHandler {
     return depth;
   }
 
-
   private void down() {
     if (depth >= limit) {
       throw new IllegalStateException("Nesting depth " + depth + " reached limit.");
@@ -57,6 +56,10 @@ public class NestingCounter implements EventHandler {
   @Override
   public void onMap() {
     down();
+  }
+
+  @Override
+  public void onMapKey() {
   }
 
   @Override

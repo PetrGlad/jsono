@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import java.util.stream.Stream;
 
-import static net.readmarks.jsono.handler.StreamingHandler.Event.*;
+import static net.readmarks.jsono.handler.Event.*;
 import static org.junit.Assert.assertArrayEquals;
 
 public class JsonParserTest {
@@ -45,14 +45,14 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    "a", false,
+                    KEY, "a", false,
                     END},
             parse("{\"a\": false}"));
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    "a", false,
-                    "b", true,
+                    KEY, "a", false,
+                    KEY, "b", true,
                     END},
             parse("{\"a\": false, \"b\":true}"));
   }
@@ -84,14 +84,14 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    "k", ARRAY, END,
+                    KEY, "k", ARRAY, END,
                     END},
             parse("{\"k\":[]}"));
     assertArrayEquals(
             new Object[]{
                     ARRAY,
                     MAP,
-                    "k", ARRAY, END,
+                    KEY, "k", ARRAY, END,
                     END,
                     END},
             parse("[{\"k\":[]}]"));
@@ -105,7 +105,7 @@ public class JsonParserTest {
     assertArrayEquals(
             new Object[]{
                     MAP,
-                    "a", 321L,
+                    KEY, "a", 321L,
                     END},
             parse("{\"a\" : 321}"));
   }
