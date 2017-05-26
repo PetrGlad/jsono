@@ -132,7 +132,7 @@ public class JsonParser {
     }
   }
 
-  private static Pattern NUMBER_FORMAT = Pattern.compile("-?(0|[1-9][0-9]+)(\\.[0-9]+)?([eE][-+]?[0-9]+)?");
+  private static Pattern NUMBER_FORMAT = Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][-+]?[0-9]+)?");
 
   class SNumber extends SElement {
     final private StringBuilder stringValue = new StringBuilder();

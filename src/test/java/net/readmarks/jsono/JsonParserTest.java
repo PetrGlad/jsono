@@ -60,7 +60,11 @@ public class JsonParserTest {
   @Test
   public void parseNumbers() {
     assertArrayEquals(new Object[]{0L}, parse("0"));
+    assertArrayEquals(new Object[]{4L}, parse("4"));
     assertArrayEquals(new Object[]{-12L}, parse("-12"));
+    assertArrayEquals(new Object[]{-0.12}, parse("-0.12"));
+    assertArrayEquals(new Object[]{1100.0}, parse("11e2"));
+    assertArrayEquals(new Object[]{0.11}, parse("11E-2"));
     assertArrayEquals(new Object[]{1234321L}, parse("1234321"));
     assertArrayEquals(new Object[]{ARRAY, 1234L, END}, parse("[1234]"));
   }
