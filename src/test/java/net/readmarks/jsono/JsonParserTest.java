@@ -123,6 +123,7 @@ public class JsonParserTest {
 
   @Test
   public void testStrings() {
+    assertArrayEquals(new Object[]{""}, parse("\"\""));
     assertArrayEquals(new Object[]{" a"}, parse("\" a\""));
     assertArrayEquals(new Object[]{"\\%2"}, parse("\"\\\\%2\""));
     assertArrayEquals(new Object[]{"\" \\%22\""}, parse("\"\\u0022 \\\\%22\\\"\""));
