@@ -1,7 +1,7 @@
 package net.readmarks.jsono.handler;
 
 import net.readmarks.jsono.JsonParser;
-import net.readmarks.utf8.Utf8Decoder;
+import net.readmarks.utf8.Utf8Decoder2;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class SimpleDeserializerTest {
                 throw new AssertionError("Deserialized struct does not match expected one.");
               }
             }));
-    final Utf8Decoder utf8decoder = new Utf8Decoder(jsonParser::parseNext);
+    final Utf8Decoder2 utf8decoder = new Utf8Decoder2(jsonParser::parseNext, 2048);
     utf8decoder.put(("[null,true,\"blUr \\u266b\" ,314e-2," +
             " {\"full-name\":[\"Thomas Thumbson\", \"jr.\", \"III\", \"Esq.\"]}," +
             " {\"name\":\"Elvis \\u266b\"}]").getBytes());

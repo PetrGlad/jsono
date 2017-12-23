@@ -235,7 +235,7 @@ public class JsonParser {
         case 'u':
           return 'u';
         default:
-          throw new IllegalStateException("Unexpected escape '" + nextChar + "'");
+          throw new IllegalStateException("Unexpected string escape '" + nextChar + "'");
       }
     }
 
@@ -358,6 +358,15 @@ public class JsonParser {
   public void parseNext(final char ch) {
     state = state.parse(ch);
   }
+
+  /**
+   * Convenience method for {@link #parseNext(char)}
+   */
+  public void parseNext(final CharSequence charSeq) {
+    for (int i = 0; i < charSeq.length(); i++)
+      parseNext(charSeq.charAt(i));
+  }
+
 
   /**
    * Call this to indicate that there will be no more input.

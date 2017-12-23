@@ -2,10 +2,11 @@ package net.readmarks.jsono;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import net.readmarks.jsono.handler.StreamingHandler;
-import net.readmarks.utf8.Utf8Decoder;
+import net.readmarks.utf8.Utf8Decoder2;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
@@ -58,14 +59,14 @@ public class MicroBenchmark {
   }
 
   private static void repeatedlyParse(String json, int iterations) {
-    final byte[] sourceBytes = json.getBytes();
+    final byte[] sourceBytes = json.getBytes(StandardCharsets.UTF_8);
     final AtomicLong eventCount = new AtomicLong(0);
     final long t1 = System.currentTimeMillis();
     for (int ll = 0; ll < iterations; ll++) {
       // Counter should normally be used in real applications so it's added here too.
       final JsonParser p = JsonParser.makeDefault(
               new StreamingHandler(event -> eventCount.incrementAndGet()));
-      final Utf8Decoder utf8parser = new Utf8Decoder(p::parseNext);
+      final Utf8Decoder2 utf8parser = new Utf8Decoder2(p::parseNext, 2048);
       utf8parser.put(sourceBytes);
       utf8parser.end();
       p.end();

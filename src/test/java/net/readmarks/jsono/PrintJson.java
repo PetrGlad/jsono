@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import net.readmarks.jsono.handler.EventToGenerator;
 import net.readmarks.jsono.handler.HandlerUtil;
 import net.readmarks.jsono.handler.NestingCounter;
-import net.readmarks.utf8.Utf8Decoder;
+import net.readmarks.utf8.Utf8Decoder2;
 
 import java.io.*;
 
@@ -30,7 +30,7 @@ public class PrintJson {
               HandlerUtil.then(
                       new NestingCounter(),
                       new EventToGenerator(generator)));
-      final Utf8Decoder utf8parser = new Utf8Decoder(parser::parseNext);
+      final Utf8Decoder2 utf8parser = new Utf8Decoder2(parser::parseNext, 2048);
       int b = in.read();
       while (b != -1) {
         // TODO (API) Allow decoding sub-range of provided array in UTF-decoder.
