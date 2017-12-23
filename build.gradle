@@ -14,14 +14,15 @@ repositories {
     maven { // Until the lib is published in a public repository
         url 'https://dl.bintray.com/petrglad/readmarks/'
     }
-    // mavenCentral()
+    mavenCentral()
+    mavenLocal()
 }
 
 sourceCompatibility = 1.8
 
 dependencies {
     testCompile 'junit:junit:4.12'
-    testCompile 'net.readmarks:utf8-decoder:1.0.1'
+    testCompile 'net.readmarks:utf8-decoder:2.0.0'
     testCompile 'com.fasterxml.jackson.core:jackson-core:2.8.4'
 }
 
@@ -41,61 +42,62 @@ artifacts {
     archives javadocJar
 }
 
-def pomConfig = {
-    licenses {
-        license {
-            name "The Apache Software License, Version 2.0"
-            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            distribution "repo"
-        }
-    }
-    developers {
-        developer {
-            id "petrglad"
-            name "Petr Gladkikh"
-            email "petrglad@gmail.com"
-        }
-    }
-    scm {
-        url 'https://github.com/PetrGlad/jsono.git'
-    }
-}
+//def pomConfig = {
+//    licenses {
+//        license {
+//            name "The Apache Software License, Version 2.0"
+//            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+//            distribution "repo"
+//        }
+//    }
+//    developers {
+//        developer {
+//            id "petrglad"
+//            name "Petr Gladkikh"
+//            email "petrglad@gmail.com"
+//        }
+//    }
+//    scm {
+//        url 'https://github.com/PetrGlad/jsono.git'
+//    }
+//}
 
-publishing {
-    publications {
-        Publication(MavenPublication) {
-            from components.java
-            groupId project.group
-            artifactId project.name
-            version project.version
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('description', 'Reactive non blocking JSON parser.')
-                root.appendNode('name', 'Jsono')
-                root.appendNode('url', 'https://github.com/PetrGlad/jsono')
-                root.children().last() + pomConfig
-            }
-        }
-    }
-}
-
-// See also https://github.com/bintray/gradle-bintray-plugin/blob/master/README.md
-bintray {
-    user = bintrayUser // set this in gradle.properties
-    key = bintrayKey // set this in gradle.properties
-    publications = ['Publication']
-    pkg {
-        repo = 'readmarks'
-        name = project.name
-        licenses = ['Apache-2.0']
-//        websiteUrl = websiteUrl
-//        vcsUrl = vcsUrl
-        githubRepo = 'PetrGlad/jsono'
-        version {
-            name = project.version
-            desc = 'Latest release'
-            released = new Date()
-            vcsTag = 'v' + project.version
-        }
-    }
-}
+//publishing {
+//    publications {
+//        Publication(MavenPublication) {
+//            from components.java
+//            groupId project.group
+//            artifactId project.name
+//            version project.version
+//            pom.withXml {
+//                def root = asNode()
+//                root.appendNode('description', 'Reactive non blocking JSON parser.')
+//                root.appendNode('name', 'Jsono')
+//                root.appendNode('url', 'https://github.com/PetrGlad/jsono')
+//                root.children().last() + pomConfig
+//            }
+//        }
+//    }
+//}
+//
+//bintrayUser = ''
+//bintrayKey = ''
+//
+//// See also https://github.com/bintray/gradle-bintray-plugin/blob/master/README.md
+//bintray {
+//    user = bintrayUser // set this in gradle.properties
+//    key = bintrayKey // set this in gradle.properties
+//    publications = ['Publication']
+//    pkg {
+//        repo = 'readmarks'
+//        name = project.name
+//        licenses = ['Apache-2.0']
+//        githubRepo = 'PetrGlad/jsono'
+//        version {
+//            name = project.version
+//            desc = 'Latest release'
+//            released = new Date()
+//            vcsTag = 'v' + project.version
+//        }
+//    }
+//}
